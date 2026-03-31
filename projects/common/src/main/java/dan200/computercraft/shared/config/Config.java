@@ -45,6 +45,7 @@ public final class Config {
     public static int monitorHeight = 6;
 
     public static int uploadNagDelay = 5;
+    public static String terminalGlyphMap = "computercraft:textures/gui/glyph_map_ascii.json";
 
     private Config() {
     }

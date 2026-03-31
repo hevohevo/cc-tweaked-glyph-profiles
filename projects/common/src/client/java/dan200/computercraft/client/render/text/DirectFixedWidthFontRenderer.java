@@ -177,7 +177,7 @@ public final class DirectFixedWidthFontRenderer {
     public record ByteBufferEmitter(ByteBuffer buffer) implements QuadEmitter {
         @Override
         public VertexFormat format() {
-            return RenderTypes.TERMINAL.format();
+            return RenderTypes.terminal().format();
         }
 
         @Override

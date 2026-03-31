@@ -121,7 +121,7 @@ public class MonitorBlockEntityRenderer implements BlockEntityRenderer<MonitorBl
             transform.popPose();
         } else {
             FixedWidthFontRenderer.drawEmptyTerminal(
-                FixedWidthFontRenderer.toVertexConsumer(transform, bufferSource.getBuffer(RenderTypes.TERMINAL)),
+                FixedWidthFontRenderer.toVertexConsumer(transform, bufferSource.getBuffer(RenderTypes.terminal())),
                 -MARGIN, MARGIN,
                 (float) (xSize + 2 * MARGIN), (float) -(ySize + MARGIN * 2)
             );
@@ -162,12 +162,12 @@ public class MonitorBlockEntityRenderer implements BlockEntityRenderer<MonitorBl
                 shader.setupUniform(renderState.tboUniform);
 
                 var buffer = Tesselator.getInstance().getBuilder();
-                buffer.begin(RenderTypes.MONITOR_TBO.mode(), RenderTypes.MONITOR_TBO.format());
+                buffer.begin(RenderTypes.monitorTbo().mode(), RenderTypes.monitorTbo().format());
                 tboVertex(buffer, matrix, -xMargin, -yMargin);
                 tboVertex(buffer, matrix, -xMargin, pixelHeight + yMargin);
                 tboVertex(buffer, matrix, pixelWidth + xMargin, -yMargin);
                 tboVertex(buffer, matrix, pixelWidth + xMargin, pixelHeight + yMargin);
-                RenderTypes.MONITOR_TBO.end(buffer, VertexSorting.DISTANCE_TO_ORIGIN);
+                RenderTypes.monitorTbo().end(buffer, VertexSorting.DISTANCE_TO_ORIGIN);
             }
             case VBO -> {
                 var backgroundBuffer = assertNonNull(renderState.backgroundBuffer);
@@ -195,7 +195,7 @@ public class MonitorBlockEntityRenderer implements BlockEntityRenderer<MonitorBl
                 var oldInverseRotation = RenderSystem.getInverseViewRotationMatrix();
                 RenderSystem.setInverseViewRotationMatrix(IDENTITY_NORMAL);
 
-                RenderTypes.TERMINAL.setupRenderState();
+                RenderTypes.terminal().setupRenderState();
 
                 // Render background geometry
                 backgroundBuffer.bind();
@@ -217,7 +217,7 @@ public class MonitorBlockEntityRenderer implements BlockEntityRenderer<MonitorBl
                 // Clear state
                 RenderSystem.polygonOffset(0.0f, -0.0f);
                 RenderSystem.disablePolygonOffset();
-                RenderTypes.TERMINAL.clearRenderState();
+                RenderTypes.terminal().clearRenderState();
                 VertexBuffer.unbind();
 
                 RenderSystem.setInverseViewRotationMatrix(oldInverseRotation);
@@ -232,7 +232,7 @@ public class MonitorBlockEntityRenderer implements BlockEntityRenderer<MonitorBl
 
         draw.accept(sink);
         buffer.flip();
-        vbo.upload(buffer.limit() / sink.format().getVertexSize(), RenderTypes.TERMINAL.mode(), sink.format(), buffer);
+        vbo.upload(buffer.limit() / sink.format().getVertexSize(), RenderTypes.terminal().mode(), sink.format(), buffer);
     }
 
     private static void tboVertex(VertexConsumer builder, Matrix4f matrix, float x, float y) {

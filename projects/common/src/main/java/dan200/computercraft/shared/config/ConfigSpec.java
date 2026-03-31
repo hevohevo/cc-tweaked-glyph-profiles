@@ -81,6 +81,7 @@ public final class ConfigSpec {
     public static final ConfigFile.Value<MonitorRenderer> monitorRenderer;
     public static final ConfigFile.Value<Integer> monitorDistance;
     public static final ConfigFile.Value<Integer> uploadNagDelay;
+    public static final ConfigFile.Value<String> terminalGlyphMap;
 
     private static MarkerFilter logFilter = MarkerFilter.createFilter(Logging.COMPUTER_ERROR.getName(), Filter.Result.ACCEPT, Filter.Result.NEUTRAL);
 
@@ -378,6 +379,12 @@ public final class ConfigSpec {
         uploadNagDelay = clientBuilder
             .comment("The delay in seconds after which we'll notify about unhandled imports. Set to 0 to disable.")
             .defineInRange("upload_nag_delay", Config.uploadNagDelay, 0, 60);
+        terminalGlyphMap = clientBuilder
+            .comment("""
+                The resource location of the terminal glyph map profile to load.
+                This should point to a JSON file such as
+                "computercraft:textures/gui/glyph_map_ascii.json".""")
+            .define("terminal_glyph_map", Config.terminalGlyphMap);
 
         clientSpec = clientBuilder.build(ConfigSpec::syncClient);
     }
@@ -449,5 +456,6 @@ public final class ConfigSpec {
         Config.monitorRenderer = monitorRenderer.get();
         Config.monitorDistance = monitorDistance.get();
         Config.uploadNagDelay = uploadNagDelay.get();
+        Config.terminalGlyphMap = terminalGlyphMap.get();
     }
 }

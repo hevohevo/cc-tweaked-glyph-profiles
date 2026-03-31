@@ -39,7 +39,7 @@ public class ShaderMod {
      */
     public DirectFixedWidthFontRenderer.QuadEmitter getQuadEmitter(int vertexCount, IntFunction<ByteBuffer> makeBuffer) {
         return new DirectFixedWidthFontRenderer.ByteBufferEmitter(
-            makeBuffer.apply(RenderTypes.TERMINAL.format().getVertexSize() * vertexCount * 4)
+            makeBuffer.apply(RenderTypes.terminal().format().getVertexSize() * vertexCount * 4)
         );
     }
 

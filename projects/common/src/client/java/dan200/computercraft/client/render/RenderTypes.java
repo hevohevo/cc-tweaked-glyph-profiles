@@ -9,7 +9,7 @@ import com.mojang.blaze3d.vertex.VertexFormat;
 import dan200.computercraft.api.ComputerCraftAPI;
 import dan200.computercraft.client.gui.GuiSprites;
 import dan200.computercraft.client.render.monitor.MonitorTextureBufferShader;
-import dan200.computercraft.client.render.text.FixedWidthFontRenderer;
+import dan200.computercraft.client.render.text.TerminalCharset;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.RenderType;
@@ -30,23 +30,50 @@ public class RenderTypes {
     public static final int FULL_BRIGHT_LIGHTMAP = (0xF << 4) | (0xF << 20);
 
     private static @Nullable MonitorTextureBufferShader monitorTboShader;
+    private static @Nullable ResourceLocation terminalFont;
+    private static @Nullable RenderType terminal;
+    private static @Nullable RenderType printoutText;
+    private static @Nullable ResourceLocation monitorTboFont;
+    private static @Nullable RenderType monitorTbo;
 
     /**
      * Renders a fullbright terminal.
      */
-    public static final RenderType TERMINAL = RenderType.text(FixedWidthFontRenderer.FONT);
+    public static RenderType terminal() {
+        var font = TerminalCharset.getFont();
+        if (terminal == null || !font.equals(terminalFont)) {
+            terminalFont = font;
+            terminal = RenderType.text(font);
+        }
+        return terminal;
+    }
 
     /**
      * Renders a monitor with the TBO shader.
      *
      * @see MonitorTextureBufferShader
      */
-    public static final RenderType MONITOR_TBO = Types.MONITOR_TBO;
+    public static RenderType monitorTbo() {
+        var font = TerminalCharset.getFont();
+        if (monitorTbo == null || !font.equals(monitorTboFont)) {
+            monitorTboFont = font;
+            monitorTbo = Types.createMonitorTbo(font);
+        }
+        return monitorTbo;
+    }
 
     /**
-     * A variant of {@link #TERMINAL} which uses the lightmap rather than rendering fullbright.
+     * A variant of {@link #terminal()} which uses the lightmap rather than rendering fullbright.
      */
-    public static final RenderType PRINTOUT_TEXT = RenderType.text(FixedWidthFontRenderer.FONT);
+    public static RenderType printoutText() {
+        var font = TerminalCharset.getFont();
+        if (printoutText == null || !font.equals(terminalFont)) {
+            terminalFont = font;
+            printoutText = RenderType.text(font);
+            terminal = printoutText;
+        }
+        return printoutText;
+    }
 
     /**
      * Printout's background texture. {@link RenderType#text(ResourceLocation)} is a <em>little</em> questionable, but
@@ -73,26 +100,25 @@ public class RenderTypes {
             new MonitorTextureBufferShader(
                 resources,
                 ComputerCraftAPI.MOD_ID + "/monitor_tbo",
-                MONITOR_TBO.format()
+                monitorTbo().format()
             ),
             x -> monitorTboShader = (MonitorTextureBufferShader) x
         );
     }
 
     private static final class Types extends RenderType {
-        private static final RenderStateShard.TextureStateShard TERM_FONT_TEXTURE = new TextureStateShard(
-            FixedWidthFontRenderer.FONT,
-            false, false // blur, minimap
-        );
+        private static RenderType createMonitorTbo(ResourceLocation font) {
+            var termFontTexture = new TextureStateShard(font, false, false);
 
-        static final RenderType MONITOR_TBO = RenderType.create(
-            "monitor_tbo", DefaultVertexFormat.POSITION_TEX, VertexFormat.Mode.TRIANGLE_STRIP, 128,
-            false, false, // useDelegate, needsSorting
-            RenderType.CompositeState.builder()
-                .setTextureState(TERM_FONT_TEXTURE)
-                .setShaderState(new ShaderStateShard(RenderTypes::getMonitorTextureBufferShader))
-                .createCompositeState(false)
-        );
+            return RenderType.create(
+                "monitor_tbo", DefaultVertexFormat.POSITION_TEX, VertexFormat.Mode.TRIANGLE_STRIP, 128,
+                false, false, // useDelegate, needsSorting
+                RenderType.CompositeState.builder()
+                    .setTextureState(termFontTexture)
+                    .setShaderState(new ShaderStateShard(RenderTypes::getMonitorTextureBufferShader))
+                    .createCompositeState(false)
+            );
+        }
 
         @SuppressWarnings("UnusedMethod")
         private Types(String name, VertexFormat format, VertexFormat.Mode mode, int buffer, boolean crumbling, boolean sort, Runnable setup, Runnable teardown) {

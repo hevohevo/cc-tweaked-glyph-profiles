@@ -71,7 +71,7 @@ public final class PocketItemRenderer extends ItemMapLikeRenderer {
         var lightColour = computer == null || computer.getLightState() == -1 ? Colour.BLACK.getHex() : computer.getLightState();
         renderLight(transform, bufferSource, lightColour, width, height);
 
-        var quadEmitter = FixedWidthFontRenderer.toVertexConsumer(transform, bufferSource.getBuffer(RenderTypes.TERMINAL));
+        var quadEmitter = FixedWidthFontRenderer.toVertexConsumer(transform, bufferSource.getBuffer(RenderTypes.terminal()));
         if (terminal == null) {
             FixedWidthFontRenderer.drawEmptyTerminal(quadEmitter, 0, 0, width, height);
         } else {
@@ -93,7 +93,7 @@ public final class PocketItemRenderer extends ItemMapLikeRenderer {
     }
 
     private static void renderLight(PoseStack transform, MultiBufferSource render, int colour, int width, int height) {
-        var buffer = render.getBuffer(RenderTypes.TERMINAL);
+        var buffer = render.getBuffer(RenderTypes.terminal());
         FixedWidthFontRenderer.drawQuad(
             FixedWidthFontRenderer.toVertexConsumer(transform, buffer),
             width - LIGHT_HEIGHT * 2, height + BORDER / 2.0f, 0.001f, LIGHT_HEIGHT * 2, LIGHT_HEIGHT,

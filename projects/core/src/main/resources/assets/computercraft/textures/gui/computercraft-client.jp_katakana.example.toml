@@ -1,0 +1,10 @@
+# Example client config override for the Japanese katakana terminal glyph profile.
+#
+# Copy the relevant line into your actual computercraft-client.toml if you want
+# to enable the bundled Japanese katakana profile.
+
+# Default:
+# terminal_glyph_map = "computercraft:textures/gui/glyph_map_ascii.json"
+
+# Japanese katakana profile:
+terminal_glyph_map = "computercraft:textures/gui/glyph_map_jp_katakana.json"

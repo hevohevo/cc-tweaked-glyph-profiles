@@ -7,6 +7,7 @@ package dan200.computercraft.client.gui.widgets;
 import com.mojang.blaze3d.vertex.Tesselator;
 import dan200.computercraft.client.render.RenderTypes;
 import dan200.computercraft.client.render.text.FixedWidthFontRenderer;
+import dan200.computercraft.client.render.text.TerminalCharset;
 import dan200.computercraft.core.terminal.Terminal;
 import dan200.computercraft.core.util.StringUtil;
 import dan200.computercraft.shared.computer.core.InputHandler;
@@ -57,6 +58,14 @@ public class TerminalWidget extends AbstractWidget {
 
     private final BitSet keysDown = new BitSet(256);
 
+    // Some IMEs emit a second Enter shortly before delivering committed text.
+    // Hold Enter briefly so we can discard that follow-up Enter when charTyped()
+    // arrives immediately afterwards. This does not catch every IME confirmation
+    // flow, but it avoids an extra newline in the cases where the committed text
+    // follows quickly.
+    private boolean pendingEnter = false;
+    private long pendingEnterTime = 0;
+
     public TerminalWidget(Terminal terminal, InputHandler computer, int x, int y) {
         super(x, y, terminal.getWidth() * FONT_WIDTH + MARGIN * 2, terminal.getHeight() * FONT_HEIGHT + MARGIN * 2, DESCRIPTION);
 
@@ -71,17 +80,31 @@ public class TerminalWidget extends AbstractWidget {
 
     @Override
     public boolean charTyped(char ch, int modifiers) {
-        if (ch >= 32 && ch <= 126 || ch >= 160 && ch <= 255) {
-            // Queue the char event for any printable chars in byte range
-            computer.queueEvent("char", new Object[]{ Character.toString(ch) });
-        }
+        if (pendingEnter) pendingEnter = false;
 
+        int glyph = TerminalCharset.map(ch);
+        computer.queueEvent("char", new Object[]{ Character.toString((char) glyph) });
         return true;
     }
 
     @Override
     public boolean keyPressed(int key, int scancode, int modifiers) {
         if (key == GLFW.GLFW_KEY_ESCAPE) return false;
+
+        if (key == GLFW.GLFW_KEY_ENTER || key == GLFW.GLFW_KEY_KP_ENTER) {
+            var imeEnterDelay = TerminalCharset.getImeEnterDelay();
+            if (imeEnterDelay <= 0) {
+                flushPendingEnterNow();
+            } else {
+                flushPendingEnterNow();
+                pendingEnter = true;
+                pendingEnterTime = System.currentTimeMillis();
+                return true;
+            }
+        }
+
+        flushPendingEnter();
+
         if (Screen.isPaste(key)) {
             paste();
             return true;
@@ -102,7 +125,6 @@ public class TerminalWidget extends AbstractWidget {
         }
 
         if (key >= 0 && terminateTimer < KEY_SUPPRESS_DELAY && rebootTimer < KEY_SUPPRESS_DELAY && shutdownTimer < KEY_SUPPRESS_DELAY) {
-            // Queue the "key" event and add to the down set
             var repeat = keysDown.get(key);
             keysDown.set(key);
             computer.keyDown(key, repeat);
@@ -113,11 +135,24 @@ public class TerminalWidget extends AbstractWidget {
 
     private void paste() {
         var clipboard = StringUtil.normaliseClipboardString(Minecraft.getInstance().keyboardHandler.getClipboard());
-        if (!clipboard.isEmpty()) computer.queueEvent("paste", new Object[]{ clipboard });
+        if (clipboard.isEmpty()) return;
+
+        var mapped = new StringBuilder(clipboard.length());
+        for (int i = 0; i < clipboard.length(); i++) {
+            int glyph = TerminalCharset.map(clipboard.charAt(i));
+            mapped.append((char) glyph);
+        }
+        
+        if (!mapped.isEmpty()) computer.queueEvent("paste", new Object[]{ mapped.toString() });
     }
+
 
     @Override
     public boolean keyReleased(int key, int scancode, int modifiers) {
+        if ((key == GLFW.GLFW_KEY_ENTER || key == GLFW.GLFW_KEY_KP_ENTER) && TerminalCharset.getImeEnterDelay() > 0) {
+            return true;
+        }
+
         // Queue the "key_up" event and remove from the down set
         if (key >= 0 && keysDown.get(key)) {
             keysDown.set(key, false);
@@ -221,6 +256,8 @@ public class TerminalWidget extends AbstractWidget {
     }
 
     public void update() {
+        flushPendingEnter();
+
         if (terminateTimer >= 0 && terminateTimer < TERMINATE_TIME && (terminateTimer += 0.05f) > TERMINATE_TIME) {
             computer.queueEvent("terminate");
         }
@@ -255,12 +292,27 @@ public class TerminalWidget extends AbstractWidget {
         }
     }
 
+    private void flushPendingEnter() {
+        var imeEnterDelay = TerminalCharset.getImeEnterDelay();
+        if (!pendingEnter || imeEnterDelay <= 0) return;
+        if (System.currentTimeMillis() - pendingEnterTime < imeEnterDelay) return;
+
+        flushPendingEnterNow();
+    }
+
+    private void flushPendingEnterNow() {
+        if (!pendingEnter) return;
+
+        pendingEnter = false;
+        computer.keyDown(GLFW.GLFW_KEY_ENTER, false);
+    }
+
     @Override
     public void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
         if (!visible) return;
 
         var bufferSource = MultiBufferSource.immediate(Tesselator.getInstance().getBuilder());
-        var emitter = FixedWidthFontRenderer.toVertexConsumer(graphics.pose(), bufferSource.getBuffer(RenderTypes.TERMINAL));
+        var emitter = FixedWidthFontRenderer.toVertexConsumer(graphics.pose(), bufferSource.getBuffer(RenderTypes.terminal()));
 
         FixedWidthFontRenderer.drawTerminal(
             emitter,

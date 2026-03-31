@@ -9,17 +9,11 @@ public final class StringUtil {
     }
 
     private static boolean isAllowed(char c) {
-        return (c >= ' ' && c <= '~') || (c >= 161 && c <= 172) || (c >= 174 && c <= 255);
+        return true;
     }
 
     private static String removeSpecialCharacters(String text, int length) {
-        var builder = new StringBuilder(length);
-        for (var i = 0; i < length; i++) {
-            var c = text.charAt(i);
-            builder.append(isAllowed(c) ? c : '?');
-        }
-
-        return builder.toString();
+        return text.substring(0, length);
     }
 
     public static String normaliseLabel(String text) {
@@ -50,6 +44,7 @@ public final class StringUtil {
             length = clipboard.length();
         }
 
-        return removeSpecialCharacters(clipboard, Math.min(length, 512));
+        length = Math.min(length, 512);
+        return length == clipboard.length() ? clipboard : clipboard.substring(0, length);
     }
 }
