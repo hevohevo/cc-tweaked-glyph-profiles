@@ -10,7 +10,7 @@ SPDX-License-Identifier: MPL-2.0
   <img alt="CC: Tweaked" src="./doc/logo.png">
 </picture>
 
-# cc-tweaked-glyph-profiles
+# CC: Tweaked Glyph Profiles Fork
 
 This is an unofficial personal fork of CC: Tweaked.
 
@@ -36,15 +36,15 @@ font model.
 
 ## Documentation
 
-- English notes:
-  [`projects/core/src/main/resources/assets/computercraft/textures/gui/README.txt`](./projects/core/src/main/resources/assets/computercraft/textures/gui/README.txt)
-- Japanese notes:
-  [`projects/core/src/main/resources/assets/computercraft/textures/gui/README_ja.txt`](./projects/core/src/main/resources/assets/computercraft/textures/gui/README_ja.txt)
+- English notes: [`projects/core/src/main/resources/assets/computercraft/textures/gui/README.txt`](./projects/core/src/main/resources/assets/computercraft/textures/gui/README.txt)
+- Japanese notes: [`projects/core/src/main/resources/assets/computercraft/textures/gui/README_ja.txt`](./projects/core/src/main/resources/assets/computercraft/textures/gui/README_ja.txt)
 
 ## Upstream Project
 
 This fork is based on the upstream CC: Tweaked project:
 https://github.com/cc-tweaked/CC-Tweaked
+
+The badges and general project information below refer to the upstream project.
 
 [![Current build status](https://github.com/cc-tweaked/CC-Tweaked/workflows/Build/badge.svg)](https://github.com/cc-tweaked/CC-Tweaked/actions "Current build status")
 [![Download CC: Tweaked on CurseForge](https://img.shields.io/static/v1?label=Download&message=CC:%20Tweaked&color=E04E14&logoColor=E04E14&logo=CurseForge)][CurseForge]
