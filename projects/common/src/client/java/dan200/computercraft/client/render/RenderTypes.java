@@ -11,7 +11,6 @@ import dan200.computercraft.client.gui.GuiSprites;
 import dan200.computercraft.client.render.monitor.MonitorTextureBufferShader;
 import dan200.computercraft.client.render.text.TerminalCharset;
 import net.minecraft.client.renderer.GameRenderer;
-import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.resources.ResourceLocation;
@@ -38,6 +37,8 @@ public class RenderTypes {
 
     /**
      * Renders a fullbright terminal.
+     *
+     * @return The render type for the currently selected terminal font.
      */
     public static RenderType terminal() {
         var font = TerminalCharset.getFont();
@@ -51,6 +52,7 @@ public class RenderTypes {
     /**
      * Renders a monitor with the TBO shader.
      *
+     * @return The render type for monitor TBO rendering with the current terminal font.
      * @see MonitorTextureBufferShader
      */
     public static RenderType monitorTbo() {
@@ -64,6 +66,8 @@ public class RenderTypes {
 
     /**
      * A variant of {@link #terminal()} which uses the lightmap rather than rendering fullbright.
+     *
+     * @return The render type for printout text with the current terminal font.
      */
     public static RenderType printoutText() {
         var font = TerminalCharset.getFont();

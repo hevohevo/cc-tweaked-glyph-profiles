@@ -142,10 +142,9 @@ public class TerminalWidget extends AbstractWidget {
             int glyph = TerminalCharset.map(clipboard.charAt(i));
             mapped.append((char) glyph);
         }
-        
+
         if (!mapped.isEmpty()) computer.queueEvent("paste", new Object[]{ mapped.toString() });
     }
-
 
     @Override
     public boolean keyReleased(int key, int scancode, int modifiers) {
