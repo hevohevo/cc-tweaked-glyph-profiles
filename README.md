@@ -10,6 +10,42 @@ SPDX-License-Identifier: MPL-2.0
   <img alt="CC: Tweaked" src="./doc/logo.png">
 </picture>
 
+# cc-tweaked-glyph-profiles
+
+This is an unofficial personal fork of CC: Tweaked.
+
+It adds configurable terminal glyph profiles for limited non-Latin terminal
+display and input experiments while keeping the terminal's fixed 256-glyph
+font model.
+
+## What This Fork Adds
+
+- JSON-driven terminal glyph profiles selected from client config.
+- A default ASCII profile.
+- A Japanese katakana profile as an example implementation.
+- Font selection from the glyph profile's `font` field.
+- IME/paste input mapping through the selected glyph profile.
+
+## Current Status
+
+- This is experimental and not an official CC: Tweaked feature.
+- Full internationalisation is not the goal.
+- IME direct input is still incomplete on some platforms.
+- In particular, some IME/OS combinations may still produce an extra newline
+  when confirming composition with Enter.
+
+## Documentation
+
+- English notes:
+  [`projects/core/src/main/resources/assets/computercraft/textures/gui/README.txt`](./projects/core/src/main/resources/assets/computercraft/textures/gui/README.txt)
+- Japanese notes:
+  [`projects/core/src/main/resources/assets/computercraft/textures/gui/README_ja.txt`](./projects/core/src/main/resources/assets/computercraft/textures/gui/README_ja.txt)
+
+## Upstream Project
+
+This fork is based on the upstream CC: Tweaked project:
+https://github.com/cc-tweaked/CC-Tweaked
+
 [![Current build status](https://github.com/cc-tweaked/CC-Tweaked/workflows/Build/badge.svg)](https://github.com/cc-tweaked/CC-Tweaked/actions "Current build status")
 [![Download CC: Tweaked on CurseForge](https://img.shields.io/static/v1?label=Download&message=CC:%20Tweaked&color=E04E14&logoColor=E04E14&logo=CurseForge)][CurseForge]
 [![Download CC: Tweaked on Modrinth](https://img.shields.io/static/v1?label=Download&color=00AF5C&logoColor=00AF5C&logo=Modrinth&message=CC:%20Tweaked)][Modrinth]
