@@ -12,8 +12,9 @@ SPDX-License-Identifier: MPL-2.0
 
 # CC: Tweaked Glyph Profiles Fork
 
-- This fork is based on a much older CC: Tweaked codebase, around the 1.89.2 era (mid-2020), rather than the current upstream head.
-- That is intentional: it was pulled from the version line bundled with a Minecraft 1.20.1 modpack I wanted to use, and I did not want to retest the surrounding peripheral-mod compatibility against a much newer upstream version.
+This fork is based on a much older CC: Tweaked codebase, around the 1.89.2 era (mid-2020), rather than the current upstream head.
+
+That is intentional: it was pulled from the version line bundled with a Minecraft 1.20.1 modpack I wanted to use, and I did not want to retest the surrounding peripheral-mod compatibility against a much newer upstream version.
 
 It adds configurable terminal glyph profiles for limited non-Latin terminal
 display and input experiments while keeping the terminal's fixed 256-glyph
@@ -27,6 +28,16 @@ font model.
 - Font selection from the glyph profile's `font` field.
 - IME/paste input mapping through the selected glyph profile.
 
+### Screenshot
+
+Monitor output using the bundled `jp_katakana` profile:
+
+![Monitor demo](./doc/screenshots/glyph-profile-monitor.png)
+
+Lua program used for the screenshot:
+
+![Lua program demo](./doc/screenshots/glyph-profile-lua-program.png)
+
 ## Current Status
 
 - This is experimental and not an official CC: Tweaked feature.
@@ -34,6 +45,7 @@ font model.
 - IME direct input is still incomplete on some platforms.
 - In particular, some IME/OS combinations may still produce an extra newline
   when confirming composition with Enter.
+
 
 ## Documentation
 
