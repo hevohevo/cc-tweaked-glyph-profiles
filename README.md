@@ -12,7 +12,7 @@ SPDX-License-Identifier: MPL-2.0
 
 # CC: Tweaked Glyph Profiles Fork
 
-This is an unofficial personal fork of CC: Tweaked.
+This fork is based on a much older CC: Tweaked codebase, around the 1.89.2 era (mid-2020), rather than the current upstream head. This is intentional: that older line is still commonly encountered in Minecraft 1.20.1-era modpack environments which I want to experiment with.
 
 It adds configurable terminal glyph profiles for limited non-Latin terminal
 display and input experiments while keeping the terminal's fixed 256-glyph
