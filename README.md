@@ -11,22 +11,16 @@ SPDX-License-Identifier: MPL-2.0
 </picture>
 
 # CC: Tweaked Glyph Profiles Fork
+## Overview
 
-This fork is based on a much older CC: Tweaked codebase, around the 1.89.2 era (mid-2020), rather than the current upstream head.
+This fork is based on CC: Tweaked 1.113.1, the final release for Minecraft Java Edition 1.20.1 on Forge, rather than the current upstream head. It makes terminal glyph handling data-driven while preserving the original CC terminal's fixed 256-glyph model as faithfully as possible.
 
-That is intentional: it was pulled from the version line bundled with a Minecraft 1.20.1 modpack I wanted to use, and I did not want to retest the surrounding peripheral-mod compatibility against a much newer upstream version.
+In practice, by providing a terminal font PNG image containing 256 glyphs of size 6x9 and a profile JSON file which defines which Unicode characters map to those glyphs, this fork lets you use the characters you want with the glyph shapes you want for both input and rendering within the 256-glyph limit. A Japanese katakana font image and profile are bundled as one example.
 
-It adds configurable terminal glyph profiles for limited non-Latin terminal
-display and input experiments while keeping the terminal's fixed 256-glyph
-font model.
+## Included Profiles
 
-## What This Fork Adds
-
-- JSON-driven terminal glyph profiles selected from client config.
-- A default ASCII profile.
-- A Japanese katakana profile as an example implementation.
-- Font selection from the glyph profile's `font` field.
-- IME/paste input mapping through the selected glyph profile.
+- [`glyph_map_ascii.json`](./projects/core/src/main/resources/assets/computercraft/textures/gui/glyph_map_ascii.json): The default ASCII-compatible profile. It defines character-to-glyph mappings and uses the original CC terminal font PNG, [`term_font.png`](./projects/core/src/main/resources/assets/computercraft/textures/gui/term_font.png), for rendering.
+- [`glyph_map_jp_katakana.json`](./projects/core/src/main/resources/assets/computercraft/textures/gui/glyph_map_jp_katakana.json): A bundled Japanese katakana example profile. It defines character-to-glyph mappings and points to its matching terminal font PNG, [`term_font_jp_katakana.png`](./projects/core/src/main/resources/assets/computercraft/textures/gui/term_font_jp_katakana.png).
 
 ### Screenshot
 
@@ -38,6 +32,62 @@ Lua program used for the screenshot:
 
 ![Lua program demo](./doc/screenshots/glyph-profile-lua-program.png)
 
+## Try The Bundled Profiles
+
+Important: If you do not change `terminal_glyph_map`, the default ASCII profile is used and behaviour remains the same as the original CC terminal font.
+
+To use the bundled Japanese katakana profile:
+
+1. Launch the game once and then exit.
+   This generates CC's client config file if it does not already exist.
+2. Open `config/computercraft-client.toml` in your Minecraft instance or modpack folder.
+3. Set the following value, and start the game again:
+
+```toml
+terminal_glyph_map = "computercraft:textures/gui/glyph_map_jp_katakana.json"
+```
+
+## Add Your Own Glyph Profiles
+
+1. Copy [`term_font.png`](./projects/core/src/main/resources/assets/computercraft/textures/gui/term_font.png) to a new file such as `term_font_yourname.png`, then draw your glyphs in the editable area shown in [`terminal-font-edit-example.png`](./doc/screenshots/terminal-font-edit-example.png).
+   Each glyph body is 6x9 pixels.
+
+2. Copy [`glyph_map_ascii.json`](./projects/core/src/main/resources/assets/computercraft/textures/gui/glyph_map_ascii.json) to a new file such as `glyph_map_yourname.json`, then edit it so that:
+   - the `font` field points to your new PNG file
+   - the `map` section assigns the Unicode code points you want to the glyph cells you changed
+   - only Unicode BMP code points (`U+0000` to `U+FFFF`) are used
+
+3. Put both files directly into the mod JAR under:
+
+```text
+assets/computercraft/textures/gui/
+```
+
+Then set `terminal_glyph_map` in `config/computercraft-client.toml` to your new JSON file. For example:
+
+```toml
+terminal_glyph_map = "computercraft:textures/gui/glyph_map_hiragana.json"
+```
+
+On Windows, a tool such as [7-Zip](https://www.7-zip.org/) can open a JAR directly and let you place files into the required folder without fully extracting the archive.
+
+Example font-editing workflow:
+
+![Glyph profile font editing guide](./doc/screenshots/terminal-font-edit-example.png)
+
+When editing a font texture, it is best to modify only the glyph areas required by your profile and leave the rest of the image unchanged. For detailed texture constraints and export notes, see the bundled documentation in this folder.
+
+Reference files:
+
+- Base terminal ASCII font image (CC original): [`projects/core/src/main/resources/assets/computercraft/textures/gui/term_font.png`](./projects/core/src/main/resources/assets/computercraft/textures/gui/term_font.png)
+- Base profile reference: [`projects/core/src/main/resources/assets/computercraft/textures/gui/glyph_map_ascii.json`](./projects/core/src/main/resources/assets/computercraft/textures/gui/glyph_map_ascii.json)
+- Example glyph map: [`projects/core/src/main/resources/assets/computercraft/textures/gui/glyph_map_jp_katakana.json`](./projects/core/src/main/resources/assets/computercraft/textures/gui/glyph_map_jp_katakana.json)
+- Example font image: [`projects/core/src/main/resources/assets/computercraft/textures/gui/term_font_jp_katakana.png`](./projects/core/src/main/resources/assets/computercraft/textures/gui/term_font_jp_katakana.png)
+- Detailed English specification: [`projects/core/src/main/resources/assets/computercraft/textures/gui/TERMINAL_GLYPH_PROFILE_SPEC.txt`](./projects/core/src/main/resources/assets/computercraft/textures/gui/TERMINAL_GLYPH_PROFILE_SPEC.txt)
+- Detailed Japanese specification: [`projects/core/src/main/resources/assets/computercraft/textures/gui/TERMINAL_GLYPH_PROFILE_SPEC_ja.txt`](./projects/core/src/main/resources/assets/computercraft/textures/gui/TERMINAL_GLYPH_PROFILE_SPEC_ja.txt)
+
+The bundled `jp_katakana` profile is only an example, not the intended limit of the system. Additional profiles such as Japanese hiragana or Korean Hangul are possible within the same resource-driven structure.
+
 ## Current Status
 
 - This is experimental and not an official CC: Tweaked feature.
@@ -47,95 +97,30 @@ Lua program used for the screenshot:
   when confirming composition with Enter.
 
 
-## Documentation
+## Contributing
+Contributions to this fork are welcome, especially in the following areas:
 
-- English notes: [`projects/core/src/main/resources/assets/computercraft/textures/gui/README.txt`](./projects/core/src/main/resources/assets/computercraft/textures/gui/README.txt)
-- Japanese notes: [`projects/core/src/main/resources/assets/computercraft/textures/gui/README_ja.txt`](./projects/core/src/main/resources/assets/computercraft/textures/gui/README_ja.txt)
+- IME-related testing reports across different platforms and input methods.
+- New language profiles from native or fluent users.
+- Refinements to glyph-profile behaviour, input handling, and terminal rendering.
+
+For language-profile contributions, the most useful form is a pair of resources:
+
+- A glyph-map JSON file.
+- A matching terminal font PNG.
+
+Profiles for additional writing systems such as Japanese hiragana or Korean Hangul would be especially welcome.
+
 
 ## Upstream Project
 
-This fork is based on the upstream CC: Tweaked project:
+This repository is an unofficial fork of CC: Tweaked.
+
+The upstream project is here:
 https://github.com/cc-tweaked/CC-Tweaked
 
-The badges and general project information below refer to the upstream project.
+This fork is based on the Minecraft 1.20.1 / CC: Tweaked 1.113.1 release line and adds experimental glyph-profile support for terminal rendering and input.
 
-[![Current build status](https://github.com/cc-tweaked/CC-Tweaked/workflows/Build/badge.svg)](https://github.com/cc-tweaked/CC-Tweaked/actions "Current build status")
-[![Download CC: Tweaked on CurseForge](https://img.shields.io/static/v1?label=Download&message=CC:%20Tweaked&color=E04E14&logoColor=E04E14&logo=CurseForge)][CurseForge]
-[![Download CC: Tweaked on Modrinth](https://img.shields.io/static/v1?label=Download&color=00AF5C&logoColor=00AF5C&logo=Modrinth&message=CC:%20Tweaked)][Modrinth]
+CC: Tweaked is a mod for Minecraft which adds programmable computers, turtles, and related peripherals. It is itself a fork of the much-beloved [ComputerCraft].
 
-CC: Tweaked is a mod for Minecraft which adds programmable computers, turtles and more to the game. A fork of the
-much-beloved [ComputerCraft], it continues its legacy with improved performance and stability, along with a wealth of
-new features.
-
-CC: Tweaked can be installed from [CurseForge] or [Modrinth]. It runs on both [Minecraft Forge] and [Fabric].
-
-## Contributing
-Any contribution is welcome, be that using the mod, reporting bugs or contributing code. If you want to get started
-developing the mod, [check out the instructions here](CONTRIBUTING.md#developing).
-
-## Community
-If you need help getting started with CC: Tweaked, want to show off your latest project, or just want to chat about
-ComputerCraft, do check out our [GitHub discussions page][GitHub discussions]! There's also a fairly populated,
-albeit quiet IRC channel on [EsperNet], if that's more your cup of tea. You can join `#computercraft` through your
-desktop client, or online using [KiwiIRC].
-
-We also host fairly comprehensive documentation at [tweaked.cc](https://tweaked.cc/ "The CC: Tweaked website").
-
-## Using
-CC: Tweaked is hosted on my maven repo, and so is relatively simple to depend on. You may wish to add a soft (or hard)
-dependency in your `mods.toml` file, with the appropriate version bounds, to ensure that API functionality you depend
-on is present.
-
-```groovy
-repositories {
-  maven {
-    url "https://maven.squiddev.cc"
-    content {
-      includeGroup("cc.tweaked")
-    }
-  }
-}
-
-dependencies {
-  // Vanilla (i.e. for multi-loader systems)
-  compileOnly("cc.tweaked:cc-tweaked-$mcVersion-common-api:$cctVersion")
-
-  // Forge Gradle
-  compileOnly("cc.tweaked:cc-tweaked-$mcVersion-core-api:$cctVersion")
-  compileOnly(fg.deobf("cc.tweaked:cc-tweaked-$mcVersion-forge-api:$cctVersion"))
-  runtimeOnly(fg.deobf("cc.tweaked:cc-tweaked-$mcVersion-forge:$cctVersion"))
-
-  // Fabric Loom
-  modCompileOnly("cc.tweaked:cc-tweaked-$mcVersion-fabric-api:$cctVersion")
-  modRuntimeOnly("cc.tweaked:cc-tweaked-$mcVersion-fabric:$cctVersion")
-}
-```
-
-When using ForgeGradle, you may also need to add the following:
-
-```groovy
-minecraft {
-    runs {
-        configureEach {
-            property 'mixin.env.remapRefMap', 'true'
-            property 'mixin.env.refMapRemappingFile', "${buildDir}/createSrgToMcp/output.srg"
-        }
-    }
-}
-```
-
-You should also be careful to only use classes within the `dan200.computercraft.api` package. Non-API classes are
-subject to change at any point. If you depend on functionality outside the API (or need to mixin to CC:T), please file
-an issue to let me know!
-
-We bundle the API sources with the jar, so documentation should be easily viewable within your editor. Alternatively,
-the generated documentation [can be browsed online](https://tweaked.cc/javadoc/).
-
-[computercraft]: https://github.com/dan200/ComputerCraft "ComputerCraft on GitHub"
-[curseforge]: https://minecraft.curseforge.com/projects/cc-tweaked "Download CC: Tweaked from CurseForge"
-[modrinth]: https://modrinth.com/mod/gu7yAYhd "Download CC: Tweaked from Modrinth"
-[Minecraft Forge]: https://files.minecraftforge.net/ "Download Minecraft Forge."
-[Fabric]: https://fabricmc.net/use/installer/ "Download Fabric."
-[GitHub Discussions]: https://github.com/cc-tweaked/CC-Tweaked/discussions
-[EsperNet]: https://www.esper.net/
-[KiwiIRC]: https://kiwiirc.com/nextclient/#irc://irc.esper.net:+6697/#computercraft "#computercraft on EsperNet"
+This fork is made with deep respect and gratitude to dan200 and SquidDev.

@@ -1,0 +1,187 @@
+CC: Tweaked Terminal Glyph Profiles
+==================================
+
+概要
+----
+
+ComputerCraft は基本的に英語中心のターミナル環境です。
+この fork では、元の固定 256-glyph terminal model を保ちながら、入力・表示する字形をカスタマイズできる機能を整備しました。
+このフォルダには、その中心となるprofile JSONファイルと、対応する font PNG画像ファイルが入っています。
+
+具体的には、6x9 サイズの glyph を 256 個並べたターミナルフォント画像と、その glyph に対応する
+Unicode 文字を定義した profile JSON を用意することで、その 256-glyph 制限の範囲でどの文字を入力・表示するかを決められます。
+同梱の日本語カタカナ用ファイルは、この仕組みを利用してテスト的に実装した一つのサンプルです。
+
+
+ファイル
+--------
+
+- term_font.png
+  デフォルトの ASCII terminal font texture。
+
+- term_font_jp_katakana.png
+  日本語カタカナ用の terminal font texture。
+
+- glyph_map_ascii.json
+  デフォルトの ASCII 専用 glyph profile。
+
+- glyph_map_jp_katakana.json
+  alias と IME 設定を含む、日本語カタカナ glyph profile。
+
+プロファイルの選択方法
+------------------
+
+profile は ComputerCraft の設定ファイル`computercraft-client.toml` の `terminal_glyph_map` 設定で選択します。
+
+例1（デフォルト値）:
+  terminal_glyph_map = "computercraft:textures/gui/glyph_map_ascii.json"
+
+例2（同梱の日本語カタカナプロファイル）：
+  terminal_glyph_map = "computercraft:textures/gui/glyph_map_jp_katakana.json"
+
+この設定が省略されているか無効な場合、CC は例1のデフォルト値（ASCII設定）にフォールバックします:
+
+  computercraft:textures/gui/glyph_map_ascii.json
+
+
+独自プロファイルの追加方法
+--------------------------
+
+手早くローカルで試すなら、JSON と PNG を mod JAR 内の次の場所へ直接入れてください:
+
+  assets/computercraft/textures/gui/
+
+例:
+
+  assets/computercraft/textures/gui/glyph_map_hiragana.json
+  assets/computercraft/textures/gui/term_font_hiragana.png
+
+その上で上記パスを以下の2箇所で設定してください:
+
+- ComputerCraftの設定ファイル`computercraft-client.toml` の `terminal_glyph_map` 設定で
+  `computercraft:textures/gui/glyph_map_hiragana.json`
+- プロファイルJSON 中にフォント画像のパスを指定している項目（`font`）
+  `computercraft:textures/gui/term_font_hiragana.png`
+
+
+Windows では、7-Zip のようなツールを使うと、アーカイブ全体を完全展開しなくても
+JAR を直接開いてファイルを追加できます。
+
+
+
+glyph profile JSONファイルの仕様
+---------------------------
+
+各 glyph profile JSON では、次の項目を定義できます:
+
+- schema
+  JSON structure version。
+
+- name
+  人が読むための profile 名。
+
+- font
+  terminal rendering に使う font texture resource。
+  これは通常の resource location で、その profile に対応する PNG を指します。
+
+- fallbackGlyph
+  未対応入力に使う glyph index。通常は `63` (`?`)。
+
+- imeEnterDelay
+  IME Enter handling の遅延ミリ秒数。
+  delayed Enter handling を無効にするには `0` を使います。
+
+- map
+  `U+XXXX` 形式の Unicode BMP code point mapping。
+  使用できるのは `U+0000` から `U+FFFF` までです。
+
+例:
+
+  "U+30A2": { "glyph": 128, "char": "ア" }
+
+任意の `char` field は、読みやすさと検証のためだけに使われます。
+
+
+
+glyph PNG画像ファイルの仕様
+---------------------------
+
+terminal renderer は次のレイアウトを前提にしています。これはCCオリジナルの仕様です:
+
+- texture size: 256x256
+- glyph grid: 16x16
+- glyph body size: 6x9
+- cell step: 8x11
+- glyph 0 origin: x=1, y=1
+
+texture lookup formula:
+
+  column = glyph % 16
+  row    = glyph / 16
+  x = 1 + column * 8
+  y = 1 + row * 11
+
+各 cell では 6x9 の glyph area だけが参照されます。
+
+
+編集時の注意:
+
+- すでにフォントが描かれている領域だけを編集する。空白の領域は触らない
+- 画像右端の細い領域は予約済みなので変更しない
+- 画像全体のサイズは 256x256 のままにする
+- export 時に alpha を保持する
+- 画像を不透明な白黒に flatten しない
+
+ビットマップ画像編集ソフトで編集した PNG に、保存時の設定で余分な情報が付いてしまった場合は、ImageMagick で PNG を書き直せることがあります。
+
+  magick out.png PNG32:term_font.png
+
+必要に応じて、alpha も確認してください:
+
+  sips -g hasAlpha term_font.png
+  
+
+
+正規化ポリシー
+--------------
+
+組み込みの言語別正規化は意図的に使っていません。
+
+複数の Unicode 文字を同じ terminal glyph に対応させたい場合は、それらを JSON の
+`map` に明示的に定義してください。これには全角 ASCII、カタカナの異体、その他
+同様の互換形も含みます。
+
+
+マッピングが適用される場所
+--------------------------
+
+glyph profile の `map` は現在、次の場所に適用されます:
+
+- terminal widget における IME/直接文字入力
+- terminal widget における paste 入力
+
+この map は、すでに terminal に保存されている既存の terminal glyph data には
+再適用されません。既存の terminal contents は、現在選ばれている font texture
+を使って、生の 0..255 glyph code のまま描画されます。
+
+実際には、これは次の意味です:
+
+- input path: Unicode character -> glyph profile map -> 0..255 glyph code
+- render path: existing 0..255 glyph code -> selected font texture cell
+
+
+既知の IME 制限
+---------------
+
+一部の IME/OS 組み合わせでは、変換を Enter で確定したときに、確定文字が届く前に
+余分な newline が入ることがあります。
+
+現在の delayed-Enter handling は、その後続の Enter の一部を抑制できますが、
+最初の IME 確定 Enter と本物の terminal Enter を確実に区別することはできません。
+
+これは macOS の日本語 IME で確認されています。現時点では IME 直接入力は
+experimental/incomplete なものとして扱ってください。
+
+
+
+
